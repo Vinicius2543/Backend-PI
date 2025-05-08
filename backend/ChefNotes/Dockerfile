@@ -1,15 +1,21 @@
-FROM eclipse-temurin:17-jdk-alpine
-
+# Etapa de build
+FROM maven:3.9.6-eclipse-temurin-17 AS build
 WORKDIR /app
 
-COPY . /app
+# Copia o projeto inteiro
+COPY . .
 
-# Adiciona permissão de execução ao Maven Wrapper
-RUN chmod +x mvnw
+# Compila sem rodar os testes
+RUN mvn clean package -DskipTests
 
-# Compila a aplicação sem rodar os testes
-RUN ./mvnw clean package -DskipTests
+# Etapa final (runtime)
+FROM eclipse-temurin:17-jdk
+WORKDIR /app
+
+# Copia o JAR gerado da etapa de build
+COPY --from=build /app/target/*.jar app.jar
 
 EXPOSE 8080
 
-CMD ["java", "-Xmx256m", "-Xms128m", "-jar", "target/backend-pi-0.0.1-SNAPSHOT.jar"]
+# Comando para rodar o app com limite de memória heap
+ENTRYPOINT ["java", "-Xmx400m", "-Xms256m", "-XX:+UseContainerSupport", "-jar", "app.jar"]
