@@ -17,5 +17,5 @@ COPY --from=build /app/target/*.jar app.jar
 
 EXPOSE 8080
 
-# Comando para rodar o app com limite de memória heap
+# Comando para rodar o app com limite de memória JVM
 ENTRYPOINT ["java", "-Xmx400m", "-Xms256m", "-XX:+UseContainerSupport", "-jar", "app.jar"]
