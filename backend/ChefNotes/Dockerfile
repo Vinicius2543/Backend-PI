@@ -1,21 +1,15 @@
-# Etapa de build
-FROM maven:3.9.6-eclipse-temurin-17 AS build
+FROM eclipse-temurin:17-jdk-alpine
+
 WORKDIR /app
 
-# Copia o projeto inteiro
-COPY . .
+COPY . /app
 
-# Compila sem rodar os testes
-RUN mvn clean package -DskipTests
+# Adiciona permissão de execução ao Maven Wrapper
+RUN chmod +x mvnw
 
-# Etapa final (runtime)
-FROM eclipse-temurin:17-jdk
-WORKDIR /app
-
-# Copia o JAR gerado da etapa de build
-COPY --from=build /app/target/*.jar app.jar
+# Compila a aplicação sem rodar os testes
+RUN ./mvnw clean package -DskipTests
 
 EXPOSE 8080
 
-# Comando para rodar o app
-ENTRYPOINT ["java", "-jar", "app.jar"]
+CMD ["java", "-Xmx256m", "-Xms128m", "-jar", "target/backend-pi-0.0.1-SNAPSHOT.jar"]
